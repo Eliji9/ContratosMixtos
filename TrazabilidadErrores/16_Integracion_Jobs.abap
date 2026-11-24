@@ -34,15 +34,15 @@ ELSE.
 ENDIF.
 
 *----------------------------------------------------------------------
-* B) Job post-aprobación – Hoja de entrada de servicio
+* B) Job post-aprobación – Hoja de entrada de servicio (contrato de servicios)
 *----------------------------------------------------------------------
 IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' ] ).
   CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
 
+  " El consecutivo se obtiene solo desde ZTMM_H_COT con el pedido
   zcl_mm_con_mix_log=>log_bapiret2(
-    iv_consec = ls_contrato-zcont_consec
     iv_etapa  = zcl_mm_con_mix_log=>gc_etapa-hoja_servicio
-    iv_ebeln  = ls_contrato-ebeln
+    iv_ebeln  = lv_ebeln            " pedido aprobado
     iv_ebelp  = lv_ebelp
     it_return = lt_return ).
 
@@ -50,15 +50,16 @@ IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' 
 ENDIF.
 
 *----------------------------------------------------------------------
-* C) Job post-aprobación – MIGO 101 (BAPI_GOODSMVT_CREATE)
+* C) Job post-aprobación – MIGO 101 (BAPI_GOODSMVT_CREATE, contrato de materiales)
 *----------------------------------------------------------------------
 IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' ] ).
   CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
 
+  " El consecutivo se obtiene solo desde ZTMM_H_COT con el pedido
   zcl_mm_con_mix_log=>log_bapiret2(
-    iv_consec = ls_contrato-zcont_consec
     iv_etapa  = zcl_mm_con_mix_log=>gc_etapa-entrada_mcia
-    iv_ebeln  = ls_contrato-ebeln
+    iv_ebeln  = lv_ebeln            " pedido aprobado
+    iv_ebelp  = lv_ebelp
     it_return = lt_return ).
 
   zcl_mm_util_pfa=>send_email( ... ).   " existente

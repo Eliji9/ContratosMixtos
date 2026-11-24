@@ -18,9 +18,11 @@ CLASS zcl_mm_con_mix_log DEFINITION
       END OF gc_etapa.
 
     "! Registra los mensajes de error de un BAPIRET2. Si no hay errores, no hace nada.
+    "! iv_consec es opcional: si no se envía (jobs de HES / MIGO 101) se obtiene
+    "! desde ZTMM_H_COT con el pedido iv_ebeln.
     CLASS-METHODS log_bapiret2
       IMPORTING
-        iv_consec TYPE zde_cont_consec
+        iv_consec TYPE zde_cont_consec OPTIONAL
         iv_etapa  TYPE ty_etapa
         iv_ebeln  TYPE ebeln OPTIONAL
         iv_ebelp  TYPE ebelp OPTIONAL
@@ -29,7 +31,7 @@ CLASS zcl_mm_con_mix_log DEFINITION
     "! Registra un error de texto libre (validaciones propias, excepciones, etc.)
     CLASS-METHODS log_texto
       IMPORTING
-        iv_consec  TYPE zde_cont_consec
+        iv_consec  TYPE zde_cont_consec OPTIONAL
         iv_etapa   TYPE ty_etapa
         iv_ebeln   TYPE ebeln OPTIONAL
         iv_ebelp   TYPE ebelp OPTIONAL
@@ -49,6 +51,11 @@ CLASS zcl_mm_con_mix_log DEFINITION
     CLASS-METHODS datos_job
       EXPORTING ev_jobname  TYPE btcjob
                 ev_jobcount TYPE btcjobcnt.
+
+    CLASS-METHODS obtener_consec
+      IMPORTING iv_consec        TYPE zde_cont_consec
+                iv_ebeln         TYPE ebeln
+      RETURNING VALUE(rv_consec) TYPE zde_cont_consec.
 ENDCLASS.
 
 
@@ -68,6 +75,8 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    DATA(lv_consec) = obtener_consec( iv_consec = iv_consec iv_ebeln = iv_ebeln ).
+
     GET TIME STAMP FIELD lv_ts.
     DATA(lv_exec) = nuevo_uuid( ).
     datos_job( IMPORTING ev_jobname = DATA(lv_jobname) ev_jobcount = DATA(lv_jobcount) ).
@@ -82,7 +91,7 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
       ENDIF.
 
       APPEND VALUE #( log_uuid     = nuevo_uuid( )
-                      zcont_consec = iv_consec
+                      zcont_consec = lv_consec
                       exec_uuid    = lv_exec
                       msg_seq      = lv_seq
                       etapa        = iv_etapa
@@ -109,11 +118,13 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    DATA(lv_consec) = obtener_consec( iv_consec = iv_consec iv_ebeln = iv_ebeln ).
+
     GET TIME STAMP FIELD lv_ts.
     datos_job( IMPORTING ev_jobname = DATA(lv_jobname) ev_jobcount = DATA(lv_jobcount) ).
 
     guardar( VALUE #( ( log_uuid     = nuevo_uuid( )
-                        zcont_consec = iv_consec
+                        zcont_consec = lv_consec
                         exec_uuid    = nuevo_uuid( )
                         msg_seq      = 1
                         etapa        = iv_etapa
@@ -162,6 +173,21 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
     IF sy-subrc <> 0.
       CLEAR: ev_jobname, ev_jobcount.
     ENDIF.
+  ENDMETHOD.
+
+  METHOD obtener_consec.
+    " En la creación de la OC el job ya conoce el consecutivo.
+    " En HES / MIGO 101 el job trabaja con el pedido: se busca el consecutivo
+    " que generó ese pedido (el consecutivo vigente, no el anulado).
+    rv_consec = iv_consec.
+    IF rv_consec IS NOT INITIAL OR iv_ebeln IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    SELECT SINGLE FROM ztmm_h_cot
+      FIELDS zcont_consec
+      WHERE ebeln = @iv_ebeln
+      INTO @rv_consec.
   ENDMETHOD.
 
 ENDCLASS.
