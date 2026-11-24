@@ -23,8 +23,9 @@ IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' 
 
   " >>> NUEVO
   zcl_mm_con_mix_log=>log_bapiret2(
-    iv_consec = ls_contrato-zcont_consec
+    iv_consec = lv_consec
     iv_etapa  = zcl_mm_con_mix_log=>gc_etapa-orden_compra
+    iv_ebeln  = lv_ebeln            " vacío si la BAPI no creó el pedido
     it_return = lt_return ).
   " <<< NUEVO
 
@@ -39,10 +40,10 @@ ENDIF.
 IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' ] ).
   CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
 
-  " El consecutivo se obtiene solo desde ZTMM_H_COT con el pedido
   zcl_mm_con_mix_log=>log_bapiret2(
+    iv_consec = lv_consec
     iv_etapa  = zcl_mm_con_mix_log=>gc_etapa-hoja_servicio
-    iv_ebeln  = lv_ebeln            " pedido aprobado
+    iv_ebeln  = lv_ebeln
     iv_ebelp  = lv_ebelp
     it_return = lt_return ).
 
@@ -55,10 +56,10 @@ ENDIF.
 IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' ] ).
   CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
 
-  " El consecutivo se obtiene solo desde ZTMM_H_COT con el pedido
   zcl_mm_con_mix_log=>log_bapiret2(
+    iv_consec = lv_consec
     iv_etapa  = zcl_mm_con_mix_log=>gc_etapa-entrada_mcia
-    iv_ebeln  = lv_ebeln            " pedido aprobado
+    iv_ebeln  = lv_ebeln
     iv_ebelp  = lv_ebelp
     it_return = lt_return ).
 
@@ -69,7 +70,7 @@ ENDIF.
 * D) Errores que no vienen de una BAPI (validaciones propias, CATCH, etc.)
 *----------------------------------------------------------------------
 zcl_mm_con_mix_log=>log_texto(
-  iv_consec  = ls_contrato-zcont_consec
+  iv_consec  = lv_consec
   iv_etapa   = zcl_mm_con_mix_log=>gc_etapa-orden_compra
   iv_mensaje = |No se encontró aprobador para el país { ls_contrato-land1 }| ).
 
