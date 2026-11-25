@@ -41,7 +41,7 @@ IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' 
   CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
 
   zcl_mm_con_mix_log=>log_bapiret2(
-    iv_consec = lv_consec
+    " Sin consecutivo: la clase lo busca en ZTMM_H_COT con el pedido
     iv_etapa  = zcl_mm_con_mix_log=>gc_etapa-hoja_servicio
     iv_ebeln  = lv_ebeln
     iv_ebelp  = lv_ebelp
@@ -57,7 +57,7 @@ IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' 
   CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
 
   zcl_mm_con_mix_log=>log_bapiret2(
-    iv_consec = lv_consec
+    " Sin consecutivo: la clase lo busca en ZTMM_H_COT con el pedido
     iv_etapa  = zcl_mm_con_mix_log=>gc_etapa-entrada_mcia
     iv_ebeln  = lv_ebeln
     iv_ebelp  = lv_ebelp
