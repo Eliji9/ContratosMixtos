@@ -24,10 +24,7 @@ define view entity ZC_CON_MIX_LOG
       Msgno,
       @EndUserText.label: 'Mensaje de error'
       Mensaje,
-      @EndUserText.label: 'Job'
-      Jobname,
-      Jobcount,
-      @EndUserText.label: 'Usuario job'
+      @EndUserText.label: 'Usuario'
       CreatedBy,
       @EndUserText.label: 'Fecha / hora'
       CreatedAt,

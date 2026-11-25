@@ -17,8 +17,6 @@ define table ztmm_log_con_mix {
   msgid            : symsgid;
   msgno            : symsgno;
   mensaje          : bapi_msg;
-  jobname          : btcjob;
-  jobcount         : btcjobcnt;
   created_by       : syuname;
   created_at       : timestampl;
 

@@ -23,8 +23,6 @@ define view entity ZI_CON_MIX_LOG
       msgid        as Msgid,
       msgno        as Msgno,
       mensaje      as Mensaje,
-      jobname      as Jobname,
-      jobcount     as Jobcount,
       created_by   as CreatedBy,
       created_at   as CreatedAt
 }

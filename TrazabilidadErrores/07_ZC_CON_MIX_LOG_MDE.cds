@@ -55,13 +55,6 @@ annotate entity ZC_CON_MIX_LOG with
   @UI.identification: [{ position: 80 }]
   Msgty;
 
-  @UI.lineItem:       [{ position: 80, importance: #LOW }]
-  @UI.identification: [{ position: 90 }]
-  Jobname;
-
-  @UI.hidden: true
-  Jobcount;
-
   @UI.identification: [{ position: 100 }]
   CreatedBy;
 

@@ -45,10 +45,6 @@ CLASS zcl_mm_con_mix_log DEFINITION
 
     CLASS-METHODS nuevo_uuid
       RETURNING VALUE(rv_uuid) TYPE sysuuid_x16.
-
-    CLASS-METHODS datos_job
-      EXPORTING ev_jobname  TYPE btcjob
-                ev_jobcount TYPE btcjobcnt.
 ENDCLASS.
 
 
@@ -70,7 +66,6 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
 
     GET TIME STAMP FIELD lv_ts.
     DATA(lv_exec) = nuevo_uuid( ).
-    datos_job( IMPORTING ev_jobname = DATA(lv_jobname) ev_jobcount = DATA(lv_jobcount) ).
 
     LOOP AT lt_err INTO DATA(ls_err).
       lv_seq += 1.
@@ -92,8 +87,6 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
                       msgid        = ls_err-id
                       msgno        = ls_err-number
                       mensaje      = lv_msg
-                      jobname      = lv_jobname
-                      jobcount     = lv_jobcount
                       created_by   = sy-uname
                       created_at   = lv_ts ) TO lt_log.
     ENDLOOP.
@@ -110,7 +103,6 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
     ENDIF.
 
     GET TIME STAMP FIELD lv_ts.
-    datos_job( IMPORTING ev_jobname = DATA(lv_jobname) ev_jobcount = DATA(lv_jobcount) ).
 
     guardar( VALUE #( ( log_uuid     = nuevo_uuid( )
                         zcont_consec = iv_consec
@@ -121,8 +113,6 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
                         ebelp        = iv_ebelp
                         msgty        = 'E'
                         mensaje      = iv_mensaje
-                        jobname      = lv_jobname
-                        jobcount     = lv_jobcount
                         created_by   = sy-uname
                         created_at   = lv_ts ) ) ).
   ENDMETHOD.
@@ -147,21 +137,6 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
       CATCH cx_uuid_error.
         CLEAR rv_uuid.
     ENDTRY.
-  ENDMETHOD.
-
-
-  METHOD datos_job.
-    CLEAR: ev_jobname, ev_jobcount.
-    CALL FUNCTION 'GET_JOB_RUNTIME_INFO'
-      IMPORTING
-        jobcount        = ev_jobcount
-        jobname         = ev_jobname
-      EXCEPTIONS
-        no_runtime_info = 1
-        OTHERS          = 2.
-    IF sy-subrc <> 0.
-      CLEAR: ev_jobname, ev_jobcount.
-    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.
