@@ -28,6 +28,17 @@ CLASS zcl_mm_con_mix_log DEFINITION
         iv_ebelp  TYPE ebelp OPTIONAL
         it_return TYPE bapiret2_t.
 
+    "! Registra los errores devueltos por la API (OData) en los jobs de HES / MIGO 101.
+    "! La tabla solo viene llena cuando hay error. Se guarda el mensaje principal
+    "! y los detalles que no lo repitan.
+    CLASS-METHODS log_errores_api
+      IMPORTING
+        iv_consec   TYPE zde_cont_consec OPTIONAL
+        iv_etapa    TYPE ty_etapa
+        iv_ebeln    TYPE ebeln OPTIONAL
+        iv_ebelp    TYPE ebelp OPTIONAL
+        it_errores  TYPE zcl_mig_oc_contratos_mixtos=>tt_error.
+
     "! Registra un error de texto libre (validaciones propias, excepciones, etc.)
     CLASS-METHODS log_texto
       IMPORTING
@@ -111,6 +122,81 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
                       msgid        = ls_err-id
                       msgno        = ls_err-number
                       mensaje      = lv_msg
+                      created_by   = sy-uname
+                      created_at   = lv_ts ) TO lt_log.
+    ENDLOOP.
+
+    guardar( lt_log ).
+  ENDMETHOD.
+
+
+  METHOD log_errores_api.
+    DATA lt_log  TYPE tt_log.
+    DATA lv_seq  TYPE i.
+    DATA lv_ts   TYPE timestampl.
+    DATA lt_msg  TYPE SORTED TABLE OF string WITH UNIQUE KEY table_line.
+
+    TYPES: BEGIN OF ty_linea,
+             code    TYPE string,
+             message TYPE string,
+           END OF ty_linea.
+    DATA lt_lineas TYPE STANDARD TABLE OF ty_linea WITH EMPTY KEY.
+
+    IF it_errores IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_consec) = obtener_consec( iv_consec = iv_consec iv_ebeln = iv_ebeln ).
+    IF lv_consec IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " Mensaje principal + detalles, sin repetir textos
+    LOOP AT it_errores INTO DATA(ls_error).
+      IF ls_error-message IS NOT INITIAL.
+        INSERT ls_error-message INTO TABLE lt_msg.
+        IF sy-subrc = 0.
+          APPEND VALUE #( code = ls_error-code message = ls_error-message ) TO lt_lineas.
+        ENDIF.
+      ENDIF.
+      LOOP AT ls_error-details INTO DATA(ls_det) WHERE message IS NOT INITIAL.
+        INSERT ls_det-message INTO TABLE lt_msg.
+        IF sy-subrc = 0.
+          APPEND VALUE #( code = ls_det-code message = ls_det-message ) TO lt_lineas.
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
+
+    IF lt_lineas IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    GET TIME STAMP FIELD lv_ts.
+    DATA(lv_exec) = nuevo_uuid( ).
+
+    LOOP AT lt_lineas INTO DATA(ls_linea).
+      lv_seq += 1.
+
+      " El código de la API viene como 'CLASE/NÚMERO' (p. ej. 'M7/053')
+      DATA(lv_msgid) = VALUE symsgid( ).
+      DATA(lv_msgno) = VALUE symsgno( ).
+      FIND REGEX '^([^/]+)/(\d{3})$' IN ls_linea-code SUBMATCHES DATA(lv_id) DATA(lv_no).
+      IF sy-subrc = 0.
+        lv_msgid = lv_id.
+        lv_msgno = lv_no.
+      ENDIF.
+
+      APPEND VALUE #( log_uuid     = nuevo_uuid( )
+                      zcont_consec = lv_consec
+                      exec_uuid    = lv_exec
+                      msg_seq      = lv_seq
+                      etapa        = iv_etapa
+                      ebeln        = iv_ebeln
+                      ebelp        = iv_ebelp
+                      msgty        = 'E'
+                      msgid        = lv_msgid
+                      msgno        = lv_msgno
+                      mensaje      = ls_linea-message
                       created_by   = sy-uname
                       created_at   = lv_ts ) TO lt_log.
     ENDLOOP.

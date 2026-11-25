@@ -36,32 +36,25 @@ ENDIF.
 
 *----------------------------------------------------------------------
 * B) Job post-aprobación – Hoja de entrada de servicio (contrato de servicios)
+*    ZCL_MIG_OC_CONTRATOS_MIXTOS: et_return (tt_error) solo viene lleno si hay error
 *----------------------------------------------------------------------
-IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' ] ).
-  CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
-
-  zcl_mm_con_mix_log=>log_bapiret2(
-    " Sin consecutivo: la clase lo busca en ZTMM_H_COT con el pedido
-    iv_etapa  = zcl_mm_con_mix_log=>gc_etapa-hoja_servicio
-    iv_ebeln  = lv_ebeln
-    iv_ebelp  = lv_ebelp
-    it_return = lt_return ).
+IF et_return IS NOT INITIAL.
+  zcl_mm_con_mix_log=>log_errores_api(
+    iv_etapa   = zcl_mm_con_mix_log=>gc_etapa-hoja_servicio
+    iv_ebeln   = lv_ebeln             " pedido; la clase obtiene el consecutivo
+    it_errores = et_return ).
 
   zcl_mm_util_pfa=>send_email( ... ).   " existente
 ENDIF.
 
 *----------------------------------------------------------------------
-* C) Job post-aprobación – MIGO 101 (BAPI_GOODSMVT_CREATE, contrato de materiales)
+* C) Job post-aprobación – MIGO 101 (contrato de materiales)
 *----------------------------------------------------------------------
-IF line_exists( lt_return[ type = 'E' ] ) OR line_exists( lt_return[ type = 'A' ] ).
-  CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
-
-  zcl_mm_con_mix_log=>log_bapiret2(
-    " Sin consecutivo: la clase lo busca en ZTMM_H_COT con el pedido
-    iv_etapa  = zcl_mm_con_mix_log=>gc_etapa-entrada_mcia
-    iv_ebeln  = lv_ebeln
-    iv_ebelp  = lv_ebelp
-    it_return = lt_return ).
+IF et_return IS NOT INITIAL.
+  zcl_mm_con_mix_log=>log_errores_api(
+    iv_etapa   = zcl_mm_con_mix_log=>gc_etapa-entrada_mcia
+    iv_ebeln   = lv_ebeln
+    it_errores = et_return ).
 
   zcl_mm_util_pfa=>send_email( ... ).   " existente
 ENDIF.
