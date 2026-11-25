@@ -39,9 +39,15 @@
 
 
   METHOD display_errors.
-    DATA lv_fecha TYPE d.
-    DATA lv_hora  TYPE t.
+    " new_message_with_text solo muestra 50 caracteres.
+    " Se usa el mensaje estándar 00/001 (&1&2&3&4&5&6&7&8) con 4 variables
+    " de 50 caracteres: hasta 200 caracteres por mensaje en la ventana.
+    TYPES ty_var TYPE c LENGTH 50.
+
     DATA lv_texto TYPE string.
+    DATA lt_var   TYPE STANDARD TABLE OF ty_var WITH EMPTY KEY.
+    DATA lv_trozo TYPE ty_var.
+    DATA lv_len   TYPE i.
 
     IF keys IS INITIAL.
       RETURN.
@@ -49,7 +55,7 @@
 
     " Errores del log (más reciente primero)
     SELECT FROM zi_con_mix_log
-      FIELDS ZcontConsec, EtapaTexto, Ebeln, Ebelp, Msgid, Msgno, Mensaje, CreatedAt
+      FIELDS ZcontConsec, EtapaTexto, Ebeln, Ebelp, Mensaje, CreatedAt
       FOR ALL ENTRIES IN @keys
       WHERE ZcontConsec = @keys-ZcontConsec
       INTO TABLE @DATA(lt_log).
@@ -69,9 +75,7 @@
 
       LOOP AT lt_log INTO DATA(ls_log) WHERE ZcontConsec = ls_key-ZcontConsec.
 
-        CONVERT TIME STAMP ls_log-CreatedAt TIME ZONE sy-zonlo
-          INTO DATE lv_fecha TIME lv_hora.
-
+        " Texto: [Etapa] Pedido xxx/yy: mensaje completo
         lv_texto = |[{ ls_log-EtapaTexto }]|.
         IF ls_log-Ebeln IS NOT INITIAL.
           lv_texto = |{ lv_texto } Pedido { ls_log-Ebeln ALPHA = OUT }|.
@@ -80,16 +84,34 @@
           ENDIF.
           lv_texto = |{ lv_texto }:|.
         ENDIF.
-        lv_texto = |{ lv_texto } { ls_log-Mensaje } ({ lv_fecha DATE = USER } { lv_hora TIME = USER }|.
-        IF ls_log-Msgid IS NOT INITIAL.
-          lv_texto = |{ lv_texto } · { ls_log-Msgid } { ls_log-Msgno }|.
+        lv_texto = |{ lv_texto } { condense( val = CONV string( ls_log-Mensaje ) del = ` ` ) }|.
+
+        IF strlen( lv_texto ) > 200.
+          lv_texto = |{ substring( val = lv_texto len = 197 ) }...|.
         ENDIF.
-        lv_texto = |{ lv_texto })|.
+
+        " Partir en trozos de 50 sin perder espacios: el mensaje elimina los
+        " espacios finales de cada variable, así que un trozo nunca termina en espacio
+        CLEAR lt_var.
+        WHILE lv_texto IS NOT INITIAL AND lines( lt_var ) < 4.
+          lv_len = nmin( val1 = 50 val2 = strlen( lv_texto ) ).
+          IF lv_len = 50 AND strlen( lv_texto ) > 50 AND substring( val = lv_texto off = 49 len = 1 ) = ` `.
+            lv_len = 49.
+          ENDIF.
+          lv_trozo = substring( val = lv_texto len = lv_len ).
+          APPEND lv_trozo TO lt_var.
+          lv_texto = substring( val = lv_texto off = lv_len ).
+        ENDWHILE.
 
         APPEND VALUE #( %tky = ls_key-%tky
-                        %msg = new_message_with_text(
+                        %msg = new_message(
+                                 id       = '00'
+                                 number   = '001'
                                  severity = if_abap_behv_message=>severity-error
-                                 text     = lv_texto ) )
+                                 v1       = VALUE #( lt_var[ 1 ] OPTIONAL )
+                                 v2       = VALUE #( lt_var[ 2 ] OPTIONAL )
+                                 v3       = VALUE #( lt_var[ 3 ] OPTIONAL )
+                                 v4       = VALUE #( lt_var[ 4 ] OPTIONAL ) ) )
                TO reported-repaprcont.
       ENDLOOP.
     ENDLOOP.
