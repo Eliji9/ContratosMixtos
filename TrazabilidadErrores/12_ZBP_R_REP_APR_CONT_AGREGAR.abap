@@ -90,14 +90,17 @@
           lv_texto = |{ substring( val = lv_texto len = 197 ) }...|.
         ENDIF.
 
-        " Partir en trozos de 50 sin perder espacios: el mensaje elimina los
-        " espacios finales de cada variable, así que un trozo nunca termina en espacio
+        " Partir en trozos de 50 sin perder espacios: el mensaje elimina los espacios
+        " al inicio y al final de cada variable, así que el corte nunca cae junto a
+        " un espacio (ni el último carácter del trozo ni el primero del siguiente)
         CLEAR lt_var.
         WHILE lv_texto IS NOT INITIAL AND lines( lt_var ) < 4.
           lv_len = nmin( val1 = 50 val2 = strlen( lv_texto ) ).
-          IF lv_len = 50 AND strlen( lv_texto ) > 50 AND substring( val = lv_texto off = 49 len = 1 ) = ` `.
-            lv_len = 49.
-          ENDIF.
+          WHILE lv_len > 1 AND lv_len < strlen( lv_texto )
+            AND ( substring( val = lv_texto off = lv_len - 1 len = 1 ) = ` `
+               OR substring( val = lv_texto off = lv_len     len = 1 ) = ` ` ).
+            lv_len -= 1.
+          ENDWHILE.
           lv_trozo = substring( val = lv_texto len = lv_len ).
           APPEND lv_trozo TO lt_var.
           lv_texto = substring( val = lv_texto off = lv_len ).
