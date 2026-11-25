@@ -104,11 +104,9 @@ annotate entity ZC_REP_APR_CONT with
   } ]
   UltEtapaError;
 
-  // Oculto en la lista (sin @UI.lineItem): el texto se ve con "Ver errores" y en el detalle
-  @UI.identification: [ {
-    position: 215 ,
-    label: 'Último error'
-  } ]
+  // Oculto en toda la app (ni en la lista ni en la configuración de columnas):
+  // el texto completo se ve con "Ver errores" y en la tabla del detalle
+  @UI.hidden: true
   UltMensajeError;
 
   @UI.identification: [ {
