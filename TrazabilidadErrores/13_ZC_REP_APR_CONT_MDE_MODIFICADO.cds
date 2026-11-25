@@ -26,16 +26,14 @@ annotate entity ZC_REP_APR_CONT with
     position: 10 ,
     importance: #MEDIUM,
     label: 'Consecutivo'
-  },
-  // NUEVO: botón "Ver errores" en cada fila (abre ventana de mensajes)
-  {
+  } ]
+  // NUEVO: botón "Ver errores" dentro de la columna "Errores" (grupo de campos)
+  @UI.fieldGroup: [ {
+    qualifier: 'Errores',
+    position: 20 ,
     type: #FOR_ACTION,
     dataAction: 'display_errors',
-    label: 'Ver errores',
-    position: 79.3,
-    inline: true,
-    importance: #HIGH,
-    cssDefault.width: '8rem'
+    label: 'Ver errores'
   } ]
   @UI.identification: [ {
     position: 10 ,
@@ -72,13 +70,20 @@ annotate entity ZC_REP_APR_CONT with
   Zstatus;
 
   /* ===== NUEVO: Trazabilidad de errores ===== */
+  // Primera columna de la lista: "Errores" = cantidad + botón "Ver errores"
   @UI.lineItem: [ {
-    position: 79.1 ,
+    position: 1 ,
     importance: #HIGH,
+    type: #AS_FIELDGROUP,
+    valueQualifier: 'Errores',
     label: 'Errores',
+    cssDefault.width: '9rem'
+  } ]
+  @UI.fieldGroup: [ {
+    qualifier: 'Errores',
+    position: 10 ,
     criticality: 'ErrorCriticality',
-    criticalityRepresentation: #WITH_ICON,
-    cssDefault.width: '5rem'
+    criticalityRepresentation: #WITH_ICON
   } ]
   @UI.identification: [ {
     position: 205 ,
@@ -88,7 +93,7 @@ annotate entity ZC_REP_APR_CONT with
   NumErrores;
 
   @UI.lineItem: [ {
-    position: 79.2 ,
+    position: 2 ,
     importance: #MEDIUM,
     label: 'Etapa último error',
     cssDefault.width: '9rem'
@@ -99,7 +104,7 @@ annotate entity ZC_REP_APR_CONT with
   } ]
   UltEtapaError;
 
-  // Sin columna en la lista: el texto se ve con el botón "Ver errores" y en el detalle
+  // Oculto en la lista (sin @UI.lineItem): el texto se ve con "Ver errores" y en el detalle
   @UI.identification: [ {
     position: 215 ,
     label: 'Último error'
