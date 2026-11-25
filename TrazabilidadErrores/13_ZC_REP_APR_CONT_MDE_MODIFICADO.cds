@@ -32,7 +32,7 @@ annotate entity ZC_REP_APR_CONT with
     type: #FOR_ACTION,
     dataAction: 'display_errors',
     label: 'Ver errores',
-    position: 81,
+    position: 79.3,
     inline: true,
     importance: #HIGH,
     cssDefault.width: '8rem'
@@ -73,7 +73,7 @@ annotate entity ZC_REP_APR_CONT with
 
   /* ===== NUEVO: Trazabilidad de errores ===== */
   @UI.lineItem: [ {
-    position: 79 ,
+    position: 79.1 ,
     importance: #HIGH,
     label: 'Errores',
     criticality: 'ErrorCriticality',
@@ -88,7 +88,7 @@ annotate entity ZC_REP_APR_CONT with
   NumErrores;
 
   @UI.lineItem: [ {
-    position: 80 ,
+    position: 79.2 ,
     importance: #MEDIUM,
     label: 'Etapa último error',
     cssDefault.width: '9rem'
