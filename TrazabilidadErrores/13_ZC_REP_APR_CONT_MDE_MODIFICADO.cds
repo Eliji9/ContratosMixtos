@@ -32,9 +32,10 @@ annotate entity ZC_REP_APR_CONT with
     type: #FOR_ACTION,
     dataAction: 'display_errors',
     label: 'Ver errores',
-    position: 35,
+    position: 81,
     inline: true,
-    importance: #HIGH
+    importance: #HIGH,
+    cssDefault.width: '8rem'
   } ]
   @UI.identification: [ {
     position: 10 ,
@@ -72,11 +73,12 @@ annotate entity ZC_REP_APR_CONT with
 
   /* ===== NUEVO: Trazabilidad de errores ===== */
   @UI.lineItem: [ {
-    position: 32 ,
+    position: 79 ,
     importance: #HIGH,
     label: 'Errores',
     criticality: 'ErrorCriticality',
-    criticalityRepresentation: #WITH_ICON
+    criticalityRepresentation: #WITH_ICON,
+    cssDefault.width: '5rem'
   } ]
   @UI.identification: [ {
     position: 205 ,
@@ -86,9 +88,10 @@ annotate entity ZC_REP_APR_CONT with
   NumErrores;
 
   @UI.lineItem: [ {
-    position: 33 ,
+    position: 80 ,
     importance: #MEDIUM,
-    label: 'Etapa último error'
+    label: 'Etapa último error',
+    cssDefault.width: '9rem'
   } ]
   @UI.identification: [ {
     position: 210 ,
@@ -96,11 +99,7 @@ annotate entity ZC_REP_APR_CONT with
   } ]
   UltEtapaError;
 
-  @UI.lineItem: [ {
-    position: 34 ,
-    importance: #MEDIUM,
-    label: 'Último error'
-  } ]
+  // Sin columna en la lista: el texto se ve con el botón "Ver errores" y en el detalle
   @UI.identification: [ {
     position: 215 ,
     label: 'Último error'
