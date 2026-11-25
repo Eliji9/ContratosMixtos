@@ -76,6 +76,11 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
                 INTO lv_msg.
       ENDIF.
 
+      " Error de presupuesto: igual que en el correo, se completa con la variable 3
+      IF ls_err-id = 'FMAVC' AND ls_err-number = '005' AND ls_err-message_v3 IS NOT INITIAL.
+        lv_msg = |{ lv_msg } - { ls_err-message_v3 }|.
+      ENDIF.
+
       APPEND VALUE #( log_uuid     = nuevo_uuid( )
                       zcont_consec = iv_consec
                       exec_uuid    = lv_exec
