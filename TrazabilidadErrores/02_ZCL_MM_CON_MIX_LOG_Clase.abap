@@ -64,6 +64,13 @@ CLASS zcl_mm_con_mix_log IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " Excluir el mensaje genérico de la BAPI (BAPI 001: "No se ha creado ninguna
+    " instancia de tipo objeto ...") cuando hay otros errores que dan la causa real.
+    " Si fuera el único error, se conserva para no perder el registro.
+    IF lines( lt_err ) > 1.
+      DELETE lt_err WHERE id = 'BAPI' AND number = '001'.
+    ENDIF.
+
     GET TIME STAMP FIELD lv_ts.
     DATA(lv_exec) = nuevo_uuid( ).
 
